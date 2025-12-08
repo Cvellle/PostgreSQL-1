@@ -1,7 +1,7 @@
 // src/types/db.d.ts
 export type MealItemRow = {
   item_id: number;
-  amount: number;
+  quantity: number;
   measurement: string;
   nutrient_id: number;
   nutrient_name: string;

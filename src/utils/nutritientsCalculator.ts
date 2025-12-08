@@ -9,7 +9,7 @@ export type NutrientTotal = {
 
 export type ItemSummary = {
   name: string;
-  amount: number;
+  quantity: number;
   measurement: string;
 };
 
@@ -24,7 +24,7 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
     const {
       item_id,
       item_name,
-      amount,
+      quantity,
       measurement,
       nutrient_name,
       nutrient_unit,
@@ -36,14 +36,14 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
     if (!itemMap.has(item_id)) {
       itemMap.set(item_id, {
         name: item_name,
-        amount: Number(amount),
+        quantity: Number(quantity),
         measurement,
       });
     } else {
       // if same item appears multiple times with different rows, keep sum for grams measurement
       const existing = itemMap.get(item_id)!;
       if (existing.measurement === "grams" && measurement === "grams") {
-        existing.amount += Number(amount);
+        existing.quantity += Number(quantity);
       }
       // don't change units logic otherwise
     }
@@ -51,9 +51,9 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
     // compute contribution
     let contribution = 0;
     if (measurement === "grams" && per_100g != null) {
-      contribution = (Number(per_100g) * Number(amount)) / 100;
+      contribution = (Number(per_100g) * Number(quantity)) / 100;
     } else if (measurement === "unit" && per_unit != null) {
-      contribution = Number(per_unit) * Number(amount);
+      contribution = Number(per_unit) * Number(quantity);
     } else {
       contribution = 0;
     }

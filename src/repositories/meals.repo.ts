@@ -5,7 +5,7 @@ export async function getMealRawData(mealId: number): Promise<MealItemRow[]> {
   const rows = await sql`
     SELECT
       mi.item_id,
-      mi.amount,
+      mi.quantity,
       mi.measurement,
       n.id AS nutrient_id,
       n.name AS nutrient_name,
