@@ -1,41 +1,49 @@
-import express, { Request, Response } from "express";
-import { neon } from "@neondatabase/serverless";
-import dotenv from "dotenv";
+import app from "./app";
 
-dotenv.config();
+const PORT = 3001;
 
-const app = express();
-const sql = neon(process.env.DATABASE_URL!);
+app.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);
 
-interface Ingredient {
-  id: number;
-  name: string;
-  quantity: number | null;
-  created_at: string;
-}
+// import express, { Request, Response } from "express";
+// import { neon } from "@neondatabase/serverless";
+// import dotenv from "dotenv";
 
-app.get("/ingredients", async (req: Request, res: Response) => {
-  try {
-    const rows = await sql`
-      SELECT * FROM ingredients
-      ORDER BY id ASC
-    `;
+// dotenv.config();
 
-    console.log("DB RESPONSE:", rows); // <-- See exactly what you get
+// const app = express();
+// const sql = neon(process.env.DATABASE_URL!);
 
-    return res.json(rows);
-  } catch (error: any) {
-    console.error("NEON ERROR:", {
-      message: error.message,
-      code: error.code,
-      sourceError: error.sourceError,
-      stack: error.stack,
-    });
+// interface Ingredient {
+//   id: number;
+//   name: string;
+//   quantity: number | null;
+//   created_at: string;
+// }
 
-    return res.status(500).json({
-      error: error.message || "Unknown error",
-    });
-  }
-});
+// app.get("/ingredients", async (req: Request, res: Response) => {
+//   try {
+//     const rows = await sql`
+//       SELECT * FROM ingredients
+//       ORDER BY id ASC
+//     `;
 
-app.listen(3001, () => console.log("Server running at http://localhost:3001"));
+//     console.log("DB RESPONSE:", rows); // <-- See exactly what you get
+
+//     return res.json(rows);
+//   } catch (error: any) {
+//     console.error("NEON ERROR:", {
+//       message: error.message,
+//       code: error.code,
+//       sourceError: error.sourceError,
+//       stack: error.stack,
+//     });
+
+//     return res.status(500).json({
+//       error: error.message || "Unknown error",
+//     });
+//   }
+// });
+
+// app.listen(3001, () => console.log("Server running at http://localhost:3001"));
