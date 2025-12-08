@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import mealRoutes from "./routes/meal.routes";
+import mealItemRoutes from "./routes/mealItem.routes";
 import { sql } from "./config/db";
 
 const app = express();
@@ -33,5 +34,6 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 
 // routes
 app.use("/meals", mealRoutes);
+app.use("/meal-items", mealItemRoutes);
 
 export default app;

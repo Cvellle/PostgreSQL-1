@@ -1,6 +1,6 @@
 // src/controllers/meal.controller.ts
 import type { Request, Response } from "express";
-import { mealIdParam } from "../schemas/meal.schemas";
+import { mealIdParam } from "../schemas/meal.schema";
 import { getMealDetails } from "../services/meal.service";
 
 export async function getMealController(req: Request, res: Response) {
