@@ -10,7 +10,7 @@ import {
 const router = Router();
 
 router.get("/", getAllMealItems);
-router.get("/:Item_id", getMealItemById);
+router.get("/:id", getMealItemById);
 router.post("/", createMealItem);
 router.patch("/:id", updateMealItem);
 router.delete("/:id", deleteMealItem);

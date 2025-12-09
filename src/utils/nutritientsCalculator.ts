@@ -1,13 +1,24 @@
 // src/utils/nutrientCalculator.ts
-import type { MealItemRow } from "../types/db.d.ts";
+// import type { MealItemRow } from "../types/db.ts";
 
-export type NutrientTotal = {
+type MealItemRow = {
+  item_id: number;
+  item_name: string;
+  quantity: number | string;
+  measurement: string;
+  nutrient_name: string;
+  nutrient_unit: string;
+  per_100g: number | null;
+  per_unit: number | null;
+};
+
+type NutrientTotal = {
   nutrient: string;
   unit: string;
   total: number;
 };
 
-export type ItemSummary = {
+type ItemSummary = {
   name: string;
   quantity: number;
   measurement: string;
@@ -18,7 +29,12 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
   items: ItemSummary[];
 } {
   const nutrientMap = new Map<string, NutrientTotal>();
+
+  // Map to track if we've already counted quantity for an item_id
   const itemMap = new Map<number, ItemSummary>();
+
+  // We'll only add quantity once per item_id to avoid duplication
+  const countedItemIds = new Set<number>();
 
   for (const row of rows) {
     const {
@@ -32,23 +48,17 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
       per_unit,
     } = row;
 
-    // accumulate item summary (one entry per item)
+    // Store quantity and measurement once per item
     if (!itemMap.has(item_id)) {
       itemMap.set(item_id, {
         name: item_name,
         quantity: Number(quantity),
         measurement,
       });
-    } else {
-      // if same item appears multiple times with different rows, keep sum for grams measurement
-      const existing = itemMap.get(item_id)!;
-      if (existing.measurement === "grams" && measurement === "grams") {
-        existing.quantity += Number(quantity);
-      }
-      // don't change units logic otherwise
+      countedItemIds.add(item_id);
     }
 
-    // compute contribution
+    // Calculate nutrient contribution per row (per nutrient)
     let contribution = 0;
     if (measurement === "grams" && per_100g != null) {
       contribution = (Number(per_100g) * Number(quantity)) / 100;
@@ -58,7 +68,8 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
       contribution = 0;
     }
 
-    const key = nutrient_name;
+    // Aggregate nutrient totals
+    const key = nutrient_name.toLowerCase(); // Normalize key
     if (!nutrientMap.has(key)) {
       nutrientMap.set(key, {
         nutrient: nutrient_name,
@@ -66,8 +77,7 @@ export function calculateMealNutrients(rows: MealItemRow[]): {
         total: contribution,
       });
     } else {
-      const cur = nutrientMap.get(key)!;
-      cur.total += contribution;
+      nutrientMap.get(key)!.total += contribution;
     }
   }
 
