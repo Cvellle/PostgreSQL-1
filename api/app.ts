@@ -30,11 +30,11 @@ app.get("/ingredients", async (req: Request, res: Response) => {
 });
 
 // health
-app.get("/health", (_req, res) => res.json({ ok: true }));
+// app.get("/health", (_req, res) => res.json({ ok: true }));
 // preetify
 app.set("json spaces", 2);
 // routes
 app.use("/meals", mealRoutes);
-app.use("/meal-items", mealItemRoutes);
+// app.use("/meal-items", mealItemRoutes);
 
 export default app;
