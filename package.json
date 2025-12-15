@@ -2,9 +2,10 @@
     "name": "supabase-node-ts-api",
     "version": "1.0.0",
     "type": "commonjs",
+    "main": "index.js",
     "scripts": {
-        "dev": "ts-node-dev --respawn src/server.ts",
-        "start": "node dist/server.js",
+        "dev": "ts-node-dev --respawn api/index.ts",
+        "start": "node dist/index.js",
         "build": "tsc"
     },
     "dependencies": {
