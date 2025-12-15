@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "ts-node-dev --respawn api/index.ts",
         "start": "node dist/index.js",
-        "build": "tsc"
+        "build": "tsc",
+        "vercel-build": "npm run build"
     },
     "dependencies": {
         "@neondatabase/serverless": "^1.0.2",
