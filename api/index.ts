@@ -1,11 +1,13 @@
 import express, { Request, Response } from "express";
 import mealRoutes from "../routes/meal.routes";
+import cors from "cors";
 
 import { sql } from "../config/db";
 
 const PORT = process.env.PORT || 3001;
 
 const app = express();
+app.use(cors());
 
 app.get("/ingredients", async (req: Request, res: Response) => {
   try {
