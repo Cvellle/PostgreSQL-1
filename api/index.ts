@@ -6,6 +6,8 @@ app.listen(PORT, () =>
   console.log(`Server running at http://localhost:${PORT}`)
 );
 
+module.exports = app;
+
 // import express, { Request, Response } from "express";
 // import { neon } from "@neondatabase/serverless";
 // import dotenv from "dotenv";
