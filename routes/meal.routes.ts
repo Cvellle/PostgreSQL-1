@@ -1,8 +1,9 @@
 import express from "express";
-import { getMealController } from "../controllers/meal.controller";
+import { getMeals, getMeal } from "../controllers/meal.controller";
 
 const router = express.Router();
 
-router.get("/:mealId", getMealController);
+router.get("/", getMeals);
+router.get("/:mealId", getMeal);
 
 export default router;

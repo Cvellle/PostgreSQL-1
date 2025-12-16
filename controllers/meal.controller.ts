@@ -1,4 +1,3 @@
-// src/controllers/meal.controller.ts
 import type { Request, Response } from "express";
 
 import { z } from "zod";
@@ -7,7 +6,40 @@ import { sql } from "../config/db";
 import { mealIdParam } from "../schemas/meal.schema";
 import { getMealDetails } from "../services/meal.service";
 
-export async function getMealController(req: Request, res: Response) {
+export async function getMeals(req: Request, res: Response) {
+  try {
+    const mealId = req.query.meal_id ? Number(req.query.meal_id) : null;
+
+    if (mealId !== null && isNaN(mealId)) {
+      return res.status(400).json({ error: "Invalid meal_id query parameter" });
+    }
+
+    let rows;
+    if (mealId !== null) {
+      rows = await sql`
+        SELECT id, name
+        FROM meals
+        WHERE id = ${mealId}
+        ORDER BY id ASC
+      `;
+    } else {
+      rows = await sql`
+        SELECT id, name
+        FROM meals
+        ORDER BY id ASC
+      `;
+    }
+
+    return res.json(rows);
+  } catch (error: any) {
+    console.error("Get all meals error:", error);
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+}
+
+export async function getMeal(req: Request, res: Response) {
   try {
     const parsed = mealIdParam.parse(req.params);
     const meal = await getMealDetails(parsed.mealId);
@@ -56,6 +88,16 @@ export async function createItem(req: Request, res: Response) {
       .json({ error: error.message || "Internal Server Error" });
   }
 }
+
+export const mealQuerySchema = z.object({
+  meal_id: z
+    .string()
+    .optional()
+    .transform((v) => (v ? Number(v) : undefined))
+    .refine((v) => v === undefined || !isNaN(v), {
+      message: "meal_id must be a number",
+    }),
+});
 
 // Example usage:
 // POST /items
