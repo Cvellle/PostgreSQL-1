@@ -8,34 +8,24 @@ import { getMealDetails } from "../services/meal.service";
 
 export async function getMeals(req: Request, res: Response) {
   try {
-    const mealId = req.query.meal_id ? Number(req.query.meal_id) : null;
-
-    if (mealId !== null && isNaN(mealId)) {
-      return res.status(400).json({ error: "Invalid meal_id query parameter" });
-    }
-
-    let rows;
-    if (mealId !== null) {
-      rows = await sql`
-        SELECT id, name
-        FROM meals
-        WHERE id = ${mealId}
-        ORDER BY id ASC
-      `;
-    } else {
-      rows = await sql`
-        SELECT id, name
-        FROM meals
-        ORDER BY id ASC
-      `;
-    }
+    const rows = await sql`
+      SELECT
+        m.id,
+        m.name,
+        STRING_AGG(i.name, ', ' ORDER BY mi.item_id) AS ingredients_preview
+      FROM meals m
+      LEFT JOIN meal_items mi ON mi.meal_id = m.id
+      LEFT JOIN items i ON i.id = mi.item_id
+      GROUP BY m.id, m.name
+      ORDER BY m.id ASC;
+    `;
 
     return res.json(rows);
   } catch (error: any) {
-    console.error("Get all meals error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Internal Server Error" });
+    console.error("Get meals preview error:", error);
+    return res.status(500).json({
+      error: error.message || "Internal Server Error",
+    });
   }
 }
 
@@ -123,3 +113,53 @@ export const mealQuerySchema = z.object({
 // VALUES (1, 2, 3, 'unit');
 
 // /meals/:id - to test changes
+
+////////////////
+// export async function getMeals(req: Request, res: Response) {
+//   try {
+//     const mealId = req.query.meal_id ? Number(req.query.meal_id) : null;
+
+//     if (mealId !== null && isNaN(mealId)) {
+//       return res.status(400).json({ error: "Invalid meal_id query parameter" });
+//     }
+
+//     let rows;
+
+//     if (mealId !== null) {
+//       rows = await sql`
+//         SELECT
+//           m.id,
+//           m.name,
+//           COALESCE(
+//             json_agg(mi.*) FILTER (WHERE mi.id IS NOT NULL),
+//             '[]'
+//           ) AS items
+//         FROM meals m
+//         LEFT JOIN meal_items mi ON mi.meal_id = m.id
+//         WHERE m.id = ${mealId}
+//         GROUP BY m.id
+//       `;
+//     } else {
+//       rows = await sql`
+//         SELECT
+//           m.id,
+//           m.name,
+//           COALESCE(
+//             json_agg(mi.*) FILTER (WHERE mi.id IS NOT NULL),
+//             '[]'
+//           ) AS items
+//         FROM meals m
+//         LEFT JOIN meal_items mi ON mi.meal_id = m.id
+//         GROUP BY m.id
+//         ORDER BY m.id ASC
+//       `;
+//     }
+
+//     return res.json(rows);
+//   } catch (error: any) {
+//     console.error("Get all meals error:", error);
+//     return res.status(500).json({
+//       error: error.message || "Internal Server Error",
+//     });
+//   }
+// }
