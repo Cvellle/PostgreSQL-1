@@ -52,6 +52,35 @@ const createItemSchema = z.object({
   measurement: z.enum(["unit", "grams"]),
 });
 
+export async function createMealAndItems(req: Request, res: Response) {
+  const { name, items } = req.body;
+  try {
+    const [meal] = await sql`
+    INSERT INTO meals (name)
+    VALUES (${name})
+    RETURNING id, name;
+  `;
+
+    for (const item of items) {
+      await sql`
+      INSERT INTO meal_items (meal_id, item_id, quantity, measurement)
+      VALUES (${meal.id}, ${item.itemId}, ${item.quantity}, ${item.measurement});
+    `;
+    }
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: "Validation failed",
+        details: error.issues,
+      });
+    }
+    console.error("Create item error:", error);
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+}
+
 export async function createItem(req: Request, res: Response) {
   try {
     // Validate input
