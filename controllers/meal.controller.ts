@@ -92,6 +92,30 @@ export async function createMealAndItems(req: Request, res: Response) {
   }
 }
 
+export async function updateMealScore(req: Request, res: Response) {
+  try {
+    const mealId = Number(req.params.mealId);
+    const score = Number(req.params.score);
+
+    if (isNaN(mealId)) {
+      return res.status(400).json({ error: "Invalid meal id" });
+    }
+
+    await sql`
+      UPDATE meals
+      SET health_score = ${score}
+      WHERE id = ${mealId};
+    `;
+
+    return res.json({ mealId, healthScore: score });
+  } catch (error: any) {
+    console.error("Update meal score error:", error);
+    return res
+      .status(500)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+}
+
 // export async function createItem(req: Request, res: Response) {
 //   try {
 //     // Validate input
