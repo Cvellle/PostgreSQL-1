@@ -9,6 +9,6 @@ const router = express.Router();
 
 router.get("/", getMeals);
 router.get("/:mealId", getMeal);
-router.get("/create", createMealAndItems);
+router.post("/create", createMealAndItems);
 
 export default router;
