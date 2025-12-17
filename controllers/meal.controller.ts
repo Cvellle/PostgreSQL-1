@@ -45,28 +45,42 @@ export async function getMeal(req: Request, res: Response) {
   }
 }
 
-// Zod schema to validate request body for creating an item
-const createItemSchema = z.object({
+const createMealSchema2 = z.object({
   name: z.string().min(1),
-  category: z.string().min(1),
-  measurement: z.enum(["unit", "grams"]),
+  items: z
+    .array(
+      z.object({
+        itemId: z.number().int().positive(),
+        quantity: z.number().positive(),
+        measurement: z.enum(["grams", "unit"]),
+      })
+    )
+    .min(1),
 });
 
 export async function createMealAndItems(req: Request, res: Response) {
-  const { name, items } = req.body;
+  console.log(123);
   try {
-    const [meal] = await sql`
-    INSERT INTO meals (name)
-    VALUES (${name})
-    RETURNING id, name;
-  `;
+    const { name, items } = createMealSchema2.parse(req.body);
 
-    for (const item of items) {
-      await sql`
-      INSERT INTO meal_items (meal_id, item_id, quantity, measurement)
-      VALUES (${meal.id}, ${item.itemId}, ${item.quantity}, ${item.measurement});
-    `;
-    }
+    const [meal] = await sql.begin(async (tx: any) => {
+      const [newMeal] = await tx`
+        INSERT INTO meals (name)
+        VALUES (${name})
+        RETURNING id, name;
+      `;
+
+      for (const item of items) {
+        await tx`
+          INSERT INTO meal_items (meal_id, item_id, quantity, measurement)
+          VALUES (${newMeal.id}, ${item.itemId}, ${item.quantity}, ${item.measurement});
+        `;
+      }
+
+      return newMeal;
+    });
+
+    return res.status(201).json(meal);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -74,39 +88,39 @@ export async function createMealAndItems(req: Request, res: Response) {
         details: error.issues,
       });
     }
-    console.error("Create item error:", error);
+    console.error("Create meal error:", error);
     return res
       .status(500)
       .json({ error: error.message || "Internal Server Error" });
   }
 }
 
-export async function createItem(req: Request, res: Response) {
-  try {
-    // Validate input
-    const parsed = createItemSchema.parse(req.body);
+// export async function createItem(req: Request, res: Response) {
+//   try {
+//     // Validate input
+//     const parsed = createItemSchema2.parse(req.body);
 
-    // Insert new item into the database
-    const inserted = await sql`
-      INSERT INTO items (name, category, measurement)
-      VALUES (${parsed.name}, ${parsed.category}, ${parsed.measurement})
-      RETURNING *;
-    `;
+//     // Insert new item into the database
+//     const inserted = await sql`
+//       INSERT INTO items (name, category, measurement)
+//       VALUES (${parsed.name}, ${parsed.category}, ${parsed.measurement})
+//       RETURNING *;
+//     `;
 
-    return res.status(201).json(inserted[0]);
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: "Validation failed",
-        details: error.issues,
-      });
-    }
-    console.error("Create item error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Internal Server Error" });
-  }
-}
+//     return res.status(201).json(inserted[0]);
+//   } catch (error: any) {
+//     if (error instanceof z.ZodError) {
+//       return res.status(400).json({
+//         error: "Validation failed",
+//         details: error.issues,
+//       });
+//     }
+//     console.error("Create item error:", error);
+//     return res
+//       .status(500)
+//       .json({ error: error.message || "Internal Server Error" });
+//   }
+// }
 
 export const mealQuerySchema = z.object({
   meal_id: z
