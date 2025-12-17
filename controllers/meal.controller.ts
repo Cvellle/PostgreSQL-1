@@ -59,26 +59,23 @@ const createMealSchema2 = z.object({
 });
 
 export async function createMealAndItems(req: Request, res: Response) {
-  console.log(123);
   try {
     const { name, items } = createMealSchema2.parse(req.body);
 
-    const [meal] = await sql.begin(async (tx: any) => {
-      const [newMeal] = await tx`
-        INSERT INTO meals (name)
-        VALUES (${name})
-        RETURNING id, name;
+    // Insert meal first
+    const [meal] = await sql`
+      INSERT INTO meals (name)
+      VALUES (${name})
+      RETURNING id, name;
+    `;
+
+    // Insert meal items sequentially (no transaction)
+    for (const item of items) {
+      await sql`
+        INSERT INTO meal_items (meal_id, item_id, quantity, measurement)
+        VALUES (${meal.id}, ${item.itemId}, ${item.quantity}, ${item.measurement});
       `;
-
-      for (const item of items) {
-        await tx`
-          INSERT INTO meal_items (meal_id, item_id, quantity, measurement)
-          VALUES (${newMeal.id}, ${item.itemId}, ${item.quantity}, ${item.measurement});
-        `;
-      }
-
-      return newMeal;
-    });
+    }
 
     return res.status(201).json(meal);
   } catch (error: any) {

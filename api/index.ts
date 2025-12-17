@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3001;
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 app.get("/ingredients", async (req: Request, res: Response) => {
   try {
