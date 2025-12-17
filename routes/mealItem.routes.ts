@@ -11,7 +11,7 @@ const router = Router();
 
 router.get("/", getAllMealItems);
 router.get("/:id", getMealItemById);
-router.post("/", createMealItem);
+router.post("/create", createMealItem);
 router.patch("/:id", updateMealItem);
 router.delete("/:id", deleteMealItem);
 
