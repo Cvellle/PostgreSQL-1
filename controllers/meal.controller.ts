@@ -106,7 +106,7 @@ export async function updateMealScore(req: Request, res: Response) {
       SET health_score = ${score}
       WHERE id = ${mealId};
     `;
-
+    console.log(res.json({ mealId, healthScore: score }));
     return res.json({ mealId, healthScore: score });
   } catch (error: any) {
     console.error("Update meal score error:", error);
