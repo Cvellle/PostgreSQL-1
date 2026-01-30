@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import mealRoutes from "../routes/meal.routes";
+import itemsRoutes from "../routes/items.route";
 import cors from "cors";
 
 import { sql } from "../config/db";
@@ -34,18 +35,15 @@ app.get("/ingredients", async (req: Request, res: Response) => {
   }
 });
 
-// health
-// app.get("/health", (_req, res) => res.json({ ok: true }));
-// preetify
 app.set("json spaces", 2);
 // routes
 app.use("/meals", mealRoutes);
-// app.use("/meal-items", mealItemRoutes);
+app.use("/items", itemsRoutes);
 
 export default app;
 
 app.listen(PORT, () =>
-  console.log(`Server running at http://localhost:${PORT}`)
+  console.log(`Server running at http://localhost:${PORT}`),
 );
 
 module.exports = app;
