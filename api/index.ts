@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import mealRoutes from "../routes/meal.routes";
 import itemsRoutes from "../routes/items.route";
+import authRoutes from "../routes/auth.route";
 import cors from "cors";
 
 import { sql } from "../config/db";
@@ -39,6 +40,7 @@ app.set("json spaces", 2);
 // routes
 app.use("/meals", mealRoutes);
 app.use("/items", itemsRoutes);
+app.use("/auth", authRoutes);
 
 export default app;
 
