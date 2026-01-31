@@ -5,12 +5,12 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
-export const authenticateJWT = (
+export function authenticateJWT(
   req: AuthRequest,
   res: Response,
   next: NextFunction,
-) => {
-  const token = req.cookies?.jwt; // or get token from Authorization header
+) {
+  const token = req.cookies?.jwt;
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized, token missing" });
@@ -24,4 +24,4 @@ export const authenticateJWT = (
   } catch (err) {
     return res.status(401).json({ error: "Unauthorized, invalid token" });
   }
-};
+}
