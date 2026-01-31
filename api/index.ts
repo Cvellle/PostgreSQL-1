@@ -5,6 +5,7 @@ import authRoutes from "../routes/auth.route";
 import cors from "cors";
 
 import { sql } from "../config/db";
+import cookieParser from "cookie-parser";
 
 const PORT = process.env.PORT || 3001;
 
@@ -30,6 +31,7 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/ingredients", async (req: Request, res: Response) => {
   try {
