@@ -90,7 +90,7 @@ app.get("/ingredients", async (req: Request, res: Response) => {
 
 app.set("json spaces", 2);
 // routes
-app.use("/meals", authenticateJWT, mealRoutes);
+app.use("/meals", mealRoutes);
 app.use("/items", itemsRoutes);
 app.use("/auth", authRoutes);
 
