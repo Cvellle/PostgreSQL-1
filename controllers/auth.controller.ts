@@ -66,24 +66,30 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 export const registerUser = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ message: "Dati mancanti." });
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res
+      .status(400)
+      .json({ message: "Nome, email e password sono obbligatori." });
+  }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [user] = await sql`
-      INSERT INTO users (email, password)
-      VALUES (${email}, ${hashedPassword})
-      RETURNING id, email, roles
+      INSERT INTO users (name, email, password)
+      VALUES (${name}, ${email}, ${hashedPassword})
+      RETURNING id, name, email, roles
     `;
 
     res.status(201).json(user);
   } catch (error: any) {
+    // 23505 Postgres code for "Unique Violation" (dubble email)
     if (error.code === "23505") {
       return res.status(409).json({ message: "Email già registrata." });
     }
+    console.error(error);
     res.status(500).json({ message: "Errore durante la registrazione" });
   }
 };
