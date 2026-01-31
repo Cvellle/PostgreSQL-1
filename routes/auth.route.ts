@@ -21,25 +21,35 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const token = req.cookies?.jwt;
+  // 1. Proveri prvo Authorization Header (Bearer token)
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1] || req.cookies?.jwt; // Ako nema u headeru, uzmi iz kukija
 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized, token missing" });
+    return res.status(401).json({ error: "No token provided" });
   }
 
   try {
+    // PAZI: Moraš biti siguran koji tajni ključ koristiš!
+    // Ako koristiš isti kuki za refresh, ovde bi verovatno trebalo da bude REFRESH_TOKEN_SECRET
+    // osim ako prilikom logina ne čuvaš Access Token u kukiju (što nije preporuka)
     const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret) as any;
+
+    // Proveri da li tvoj token sadrži 'id' ili je upakovan u 'UserInfo'
+    // Ako si u loginu stavio { id: user.id }, onda je ovo req.user = decoded;
     req.user = decoded;
+
     next();
   } catch (err) {
-    return res.status(401).json({ error: "Unauthorized, invalid token" });
+    console.log("JWT Error:", err.message);
+    return res.status(401).json({ error: "Invalid token" });
   }
 }
 //
 
+router.get("/me", authenticateJWT, getCurrentUser);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
-router.get("/me", authenticateJWT, getCurrentUser);
 
 export default router;
