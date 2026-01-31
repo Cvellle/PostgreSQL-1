@@ -26,7 +26,7 @@ export function authenticateJWT(
   }
 
   try {
-    const secret = process.env.JWT_SECRET || "your-secret";
+    const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
     const decoded = jwt.verify(token, secret);
     req.user = decoded;
     next();
