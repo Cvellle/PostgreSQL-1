@@ -42,7 +42,6 @@ export function authenticateJWT(
 
     next();
   } catch (err) {
-    console.log("JWT Error:", err.message);
     return res.status(401).json({ error: "Invalid token" });
   }
 }
