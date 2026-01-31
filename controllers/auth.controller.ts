@@ -66,7 +66,6 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 export const registerUser = async (req: Request, res: Response) => {
-  console.log(123123);
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ message: "Dati mancanti." });

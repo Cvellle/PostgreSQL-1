@@ -9,7 +9,26 @@ import { sql } from "../config/db";
 const PORT = process.env.PORT || 3001;
 
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://food-calc-rose.vercel.app/",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Postman or mobile apps
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    // for cookies
+    credentials: true,
+    optionsSuccessStatus: 200,
+  }),
+);
 app.use(express.json());
 
 app.get("/ingredients", async (req: Request, res: Response) => {
