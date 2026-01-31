@@ -19,7 +19,7 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const token = req.cookies?.JWT;
+  const token = req.cookies?.jwt;
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized, token missing" });
