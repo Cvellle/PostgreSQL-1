@@ -3,7 +3,10 @@ import mealRoutes from "../routes/meal.routes";
 import itemsRoutes from "../routes/items.route";
 import authRoutes from "../routes/auth.route";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import { sql } from "../config/db";
 
+// testing
 import { NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
@@ -16,7 +19,7 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const token = req.cookies?.jwt;
+  const token = req.cookies?.JWT;
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized, token missing" });
@@ -31,9 +34,7 @@ export function authenticateJWT(
     return res.status(401).json({ error: "Unauthorized, invalid token" });
   }
 }
-
-import { sql } from "../config/db";
-import cookieParser from "cookie-parser";
+//
 
 const PORT = process.env.PORT || 3001;
 
