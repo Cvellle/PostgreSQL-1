@@ -19,6 +19,7 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
+  console.log(123, req.cookies.jwt);
   const token = req.cookies?.jwt;
 
   if (!token) {
