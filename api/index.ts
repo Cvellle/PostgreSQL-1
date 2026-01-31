@@ -3,6 +3,7 @@ import mealRoutes from "../routes/meal.routes";
 import itemsRoutes from "../routes/items.route";
 import authRoutes from "../routes/auth.route";
 import cors from "cors";
+import authenticateJWT from "../middlewares/authenticateJWT";
 
 import { sql } from "../config/db";
 import cookieParser from "cookie-parser";
@@ -60,7 +61,7 @@ app.get("/ingredients", async (req: Request, res: Response) => {
 
 app.set("json spaces", 2);
 // routes
-app.use("/meals", mealRoutes);
+app.use("/meals", authenticateJWT, mealRoutes);
 app.use("/items", itemsRoutes);
 app.use("/auth", authRoutes);
 
