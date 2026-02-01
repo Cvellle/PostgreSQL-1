@@ -7,6 +7,7 @@ interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
+    name: string;
     roles: string[];
   };
 }
@@ -31,7 +32,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const roles = getRolesArray(user.roles);
 
     const accessToken = jwt.sign(
-      { UserInfo: { id: user.id, email: user.email, roles } },
+      { UserInfo: { id: user.id, name: user.name, email: user.email, roles } },
       process.env.ACCESS_TOKEN_SECRET!,
       { expiresIn: "15m" },
     );
@@ -123,7 +124,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
             },
           },
           process.env.ACCESS_TOKEN_SECRET!,
-          { expiresIn: "1m" },
+          { expiresIn: "15m" },
         );
         res.json({ roles, accessToken });
       },
