@@ -13,10 +13,17 @@ const router = express.Router();
 // testing
 import { NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { allowedOrigins } from "../api";
+import cors from "cors";
 
 interface AuthRequest extends Request {
   user?: any;
 }
+
+const authCors = cors({
+  origin: allowedOrigins,
+  credentials: true,
+});
 
 export function authenticateJWT(
   req: AuthRequest,
@@ -47,7 +54,7 @@ export function authenticateJWT(
 }
 //
 
-router.get("/me", authenticateJWT, getCurrentUser);
+router.get("/me", authCors, authenticateJWT, getCurrentUser);
 router.post("/refresh", handleRefreshToken);
 router.post("/register", registerUser);
 router.post("/login", loginUser);

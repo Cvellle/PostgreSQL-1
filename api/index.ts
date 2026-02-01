@@ -9,10 +9,10 @@ const PORT = process.env.PORT || 3001;
 
 const app = express();
 
-const allowedOrigins = [
+export const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "https://food-calc-rose.vercel.app/",
+  "https://food-calc-rose.vercel.app",
 ];
 
 // app.use
