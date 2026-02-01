@@ -123,7 +123,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
             },
           },
           process.env.ACCESS_TOKEN_SECRET!,
-          { expiresIn: "15m" },
+          { expiresIn: "1m" },
         );
         res.json({ roles, accessToken });
       },
