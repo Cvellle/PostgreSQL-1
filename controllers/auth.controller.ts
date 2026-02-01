@@ -4,8 +4,11 @@ import jwt from "jsonwebtoken";
 import { sql } from "../config/db";
 
 interface AuthRequest extends Request {
-  user?: { id: string; email: string };
-  file?: Express.Multer.File;
+  user?: {
+    id: string;
+    email: string;
+    roles: string[];
+  };
 }
 
 const getRolesArray = (rolesObj: any) => {
@@ -22,21 +25,23 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const users = await sql`
-      SELECT * FROM users WHERE email = ${email}
-    `;
-
+    const users = await sql`SELECT * FROM users WHERE email = ${email}`;
     if (users.length === 0) return res.sendStatus(401);
 
     const user = users[0];
     const match = await bcrypt.compare(password, user.password);
-
     if (!match) return res.sendStatus(401);
 
     const roles = getRolesArray(user.roles);
 
     const accessToken = jwt.sign(
-      { UserInfo: { email: user.email, roles } },
+      {
+        UserInfo: {
+          id: user.id,
+          email: user.email,
+          roles,
+        },
+      },
       process.env.ACCESS_TOKEN_SECRET!,
       { expiresIn: "15m" },
     );
@@ -47,9 +52,7 @@ export const loginUser = async (req: Request, res: Response) => {
       { expiresIn: "1d" },
     );
 
-    await sql`
-      UPDATE users SET refresh_token = ${refreshToken} WHERE id = ${user.id}
-    `;
+    await sql`UPDATE users SET refresh_token = ${refreshToken} WHERE id = ${user.id}`;
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
@@ -60,7 +63,6 @@ export const loginUser = async (req: Request, res: Response) => {
 
     res.json({ roles, accessToken });
   } catch (err) {
-    console.error(err);
     res.sendStatus(500);
   }
 };
@@ -85,17 +87,15 @@ export const registerUser = async (req: Request, res: Response) => {
 
     res.status(201).json(user);
   } catch (error: any) {
-    // 23505 Postgres code for "Unique Violation" (dubble email)
-    if (error.code === "23505") {
+    if (error.code === "23505")
       return res.status(409).json({ message: "Email già registrata." });
-    }
-    console.error(error);
     res.status(500).json({ message: "Errore durante la registrazione" });
   }
 };
 
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
+
   if (!userId) return res.sendStatus(401);
 
   try {
@@ -118,10 +118,8 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
   const refreshToken = cookies.jwt;
 
   try {
-    const [user] = await sql`
-      SELECT * FROM users WHERE refresh_token = ${refreshToken}
-    `;
-
+    const [user] =
+      await sql`SELECT * FROM users WHERE refresh_token = ${refreshToken}`;
     if (!user) return res.sendStatus(403);
 
     jwt.verify(
@@ -132,7 +130,13 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
 
         const roles = getRolesArray(user.roles);
         const accessToken = jwt.sign(
-          { UserInfo: { email: user.email, roles } },
+          {
+            UserInfo: {
+              id: user.id,
+              email: user.email,
+              roles,
+            },
+          },
           process.env.ACCESS_TOKEN_SECRET!,
           { expiresIn: "15m" },
         );
@@ -152,41 +156,10 @@ export const handleLogout = async (req: Request, res: Response) => {
   const refreshToken = cookies.jwt;
 
   try {
-    await sql`
-      UPDATE users SET refresh_token = NULL WHERE refresh_token = ${refreshToken}
-    `;
-
+    await sql`UPDATE users SET refresh_token = NULL WHERE refresh_token = ${refreshToken}`;
     res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
     res.sendStatus(204);
   } catch (err) {
     res.sendStatus(500);
-  }
-};
-
-export const uploadProfile = async (req: AuthRequest, res: Response) => {
-  const file = req.file;
-  const userId = req.user?.id;
-
-  if (!file || !userId) {
-    return res.status(400).json({ message: "File non caricato" });
-  }
-
-  const profileImageData = {
-    filename: file.filename,
-    path: file.path,
-    mimetype: file.mimetype,
-  };
-
-  try {
-    await sql`
-      UPDATE users SET profile_image = ${sql.json(profileImageData)} WHERE id = ${userId}
-    `;
-
-    res.status(200).json({
-      message: "Foto profilo aggiornata",
-      profileImage: profileImageData,
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Errore caricamento" });
   }
 };
