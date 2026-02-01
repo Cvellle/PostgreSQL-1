@@ -86,7 +86,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
 
   try {
     const [user] = await sql`
-      SELECT id, email, roles, profile_image FROM users WHERE id = ${userId}
+      SELECT id, email, name, roles, profile_image FROM users WHERE id = ${userId}
     `;
     if (!user) return res.status(404).json({ message: "Utente non trovato" });
     res.json(user);
