@@ -4,6 +4,7 @@ import {
   loginUser,
   getCurrentUser,
   handleRefreshToken,
+  handleLogout,
 } from "../controllers/auth.controller";
 import { Request, Response } from "express";
 
@@ -50,5 +51,6 @@ router.get("/me", authenticateJWT, getCurrentUser);
 router.post("/refresh", handleRefreshToken);
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/logout", handleLogout);
 
 export default router;

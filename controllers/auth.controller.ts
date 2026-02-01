@@ -114,7 +114,14 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
         if (err || decoded.email !== user.email) return res.sendStatus(403);
         const roles = getRolesArray(user.roles);
         const accessToken = jwt.sign(
-          { UserInfo: { id: user.id, email: user.email, roles } },
+          {
+            UserInfo: {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              roles,
+            },
+          },
           process.env.ACCESS_TOKEN_SECRET!,
           { expiresIn: "15m" },
         );
