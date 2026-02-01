@@ -17,12 +17,8 @@ const getRolesArray = (rolesObj: any) => {
 
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res
-      .status(400)
-      .json({ message: "Email e password sono obbligatori." });
-  }
+  if (!email || !password)
+    return res.status(400).json({ message: "Email e password obbligatori." });
 
   try {
     const users = await sql`SELECT * FROM users WHERE email = ${email}`;
@@ -35,13 +31,7 @@ export const loginUser = async (req: Request, res: Response) => {
     const roles = getRolesArray(user.roles);
 
     const accessToken = jwt.sign(
-      {
-        UserInfo: {
-          id: user.id,
-          email: user.email,
-          roles,
-        },
-      },
+      { UserInfo: { id: user.id, email: user.email, roles } },
       process.env.ACCESS_TOKEN_SECRET!,
       { expiresIn: "15m" },
     );
@@ -69,22 +59,18 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const registerUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
+  if (!name || !email || !password)
     return res
       .status(400)
-      .json({ message: "Nome, email e password sono obbligatori." });
-  }
+      .json({ message: "Nome, email e password obbligatori." });
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const [user] = await sql`
       INSERT INTO users (name, email, password)
       VALUES (${name}, ${email}, ${hashedPassword})
       RETURNING id, name, email, roles
     `;
-
     res.status(201).json(user);
   } catch (error: any) {
     if (error.code === "23505")
@@ -95,16 +81,13 @@ export const registerUser = async (req: Request, res: Response) => {
 
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
-
   if (!userId) return res.sendStatus(401);
 
   try {
     const [user] = await sql`
       SELECT id, email, roles, profile_image FROM users WHERE id = ${userId}
     `;
-
     if (!user) return res.status(404).json({ message: "Utente non trovato" });
-
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: "Errore del server" });
@@ -118,29 +101,23 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
   const refreshToken = cookies.jwt;
 
   try {
-    const [user] =
+    const users =
       await sql`SELECT * FROM users WHERE refresh_token = ${refreshToken}`;
-    if (!user) return res.sendStatus(403);
+    if (users.length === 0) return res.sendStatus(403);
+
+    const user = users[0];
 
     jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET!,
       (err: any, decoded: any) => {
         if (err || decoded.email !== user.email) return res.sendStatus(403);
-
         const roles = getRolesArray(user.roles);
         const accessToken = jwt.sign(
-          {
-            UserInfo: {
-              id: user.id,
-              email: user.email,
-              roles,
-            },
-          },
+          { UserInfo: { id: user.id, email: user.email, roles } },
           process.env.ACCESS_TOKEN_SECRET!,
           { expiresIn: "15m" },
         );
-
         res.json({ roles, accessToken });
       },
     );
