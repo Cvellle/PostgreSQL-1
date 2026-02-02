@@ -24,27 +24,34 @@ const authCors = cors({
   credentials: true,
 });
 
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 export function authenticateJWT(
   req: AuthRequest,
   res: Response,
   next: NextFunction,
 ) {
-  const token = req.cookies["accessToken"];
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ message: "No access token" });
   }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
     const decoded = jwt.verify(token, secret) as any;
 
-    req.user = decoded.UserInfo ?? decoded;
+    req.user = decoded.UserInfo ? decoded.UserInfo : decoded;
     next();
-  } catch {
-    return res.status(401).json({ message: "Token expired or invalid" });
+  } catch (err) {
+    return res.status(401).json({ message: "Token expired" });
   }
 }
+
 //
 
 router.get("/", authCors, authenticateJWT, getSavedMeals);

@@ -17,6 +17,8 @@ export const allowedOrigins = [
 ];
 
 // app.use
+app.use(cookieParser());
+app.use(express.json());
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -31,8 +33,6 @@ app.use(
     optionsSuccessStatus: 200,
   }),
 );
-app.use(express.json());
-app.use(cookieParser());
 
 // format json
 app.set("json spaces", 2);
