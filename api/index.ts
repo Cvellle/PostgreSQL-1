@@ -2,6 +2,7 @@ import express from "express";
 import mealRoutes from "../routes/meal.routes";
 import itemsRoutes from "../routes/items.route";
 import authRoutes from "../routes/auth.route";
+import savedMealsRoutes from "../routes/savedMeals.route";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -26,7 +27,6 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    // for cookies
     credentials: true,
     optionsSuccessStatus: 200,
   }),
@@ -41,6 +41,7 @@ app.set("json spaces", 2);
 app.use("/meals", mealRoutes);
 app.use("/items", itemsRoutes);
 app.use("/auth", authRoutes);
+app.use("/saved-meals", savedMealsRoutes);
 
 export default app;
 

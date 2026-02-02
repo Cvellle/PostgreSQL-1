@@ -53,7 +53,7 @@ const createMealSchema2 = z.object({
         itemId: z.number().int().positive(),
         quantity: z.number().positive(),
         measurement: z.enum(["grams", "unit"]),
-      })
+      }),
     )
     .min(1),
 });
@@ -62,14 +62,12 @@ export async function createMealAndItems(req: Request, res: Response) {
   try {
     const { name, items } = createMealSchema2.parse(req.body);
 
-    // Insert meal first
     const [meal] = await sql`
       INSERT INTO meals (name)
       VALUES (${name})
       RETURNING id, name;
     `;
 
-    // Insert meal items sequentially (no transaction)
     for (const item of items) {
       await sql`
         INSERT INTO meal_items (meal_id, item_id, quantity, measurement)
