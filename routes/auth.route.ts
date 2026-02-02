@@ -16,10 +16,6 @@ import jwt from "jsonwebtoken";
 import { allowedOrigins } from "../api";
 import cors from "cors";
 
-interface AuthRequest extends Request {
-  user?: any;
-}
-
 const authCors = cors({
   origin: allowedOrigins,
   credentials: true,
@@ -34,13 +30,11 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies["accessToken"];
 
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({ message: "No access token" });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
@@ -49,11 +43,9 @@ export function authenticateJWT(
     req.user = decoded.UserInfo ? decoded.UserInfo : decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Token expired" });
+    return res.status(401).json({ message: "Token expired or invalid" });
   }
 }
-
-//
 
 router.get("/me", authCors, authenticateJWT, getCurrentUser);
 router.post("/refresh", handleRefreshToken);

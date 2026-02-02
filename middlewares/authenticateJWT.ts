@@ -10,18 +10,19 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const token = req.cookies?.jwt;
+  const token = req.cookies["accessToken"];
 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized, token missing" });
+    return res.status(401).json({ message: "No access token" });
   }
 
   try {
     const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
-    const decoded = jwt.verify(token, secret);
-    req.user = decoded;
+    const decoded = jwt.verify(token, secret) as any;
+
+    req.user = decoded.UserInfo ? decoded.UserInfo : decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ error: "Unauthorized, invalid token" });
+    return res.status(401).json({ message: "Token expired or invalid" });
   }
 }

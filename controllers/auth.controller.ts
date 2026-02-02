@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sql } from "../config/db";
@@ -45,14 +45,23 @@ export const loginUser = async (req: Request, res: Response) => {
 
     await sql`UPDATE users SET refresh_token = ${refreshToken} WHERE id = ${user.id}`;
 
-    res.cookie("jwt", refreshToken, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+      path: "/",
     });
 
-    res.json({ roles, accessToken });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/auth/refresh",
+    });
+
+    res.json({ roles });
   } catch (err) {
     res.sendStatus(500);
   }
@@ -97,9 +106,9 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
 
 export const handleRefreshToken = async (req: Request, res: Response) => {
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(401);
+  if (!cookies?.refreshToken) return res.sendStatus(401);
 
-  const refreshToken = cookies.jwt;
+  const refreshToken = cookies.refreshToken;
 
   try {
     const users =
@@ -116,7 +125,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
 
         const roles = getRolesArray(user.roles);
 
-        const accessToken = jwt.sign(
+        const newAccessToken = jwt.sign(
           {
             UserInfo: {
               id: user.id,
@@ -128,7 +137,16 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
           process.env.ACCESS_TOKEN_SECRET!,
           { expiresIn: "15m" },
         );
-        res.json({ roles, accessToken });
+
+        res.cookie("accessToken", newAccessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 15 * 60 * 1000,
+          path: "/",
+        });
+
+        res.json({ roles });
       },
     );
   } catch (err) {
@@ -138,13 +156,24 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
 
 export const handleLogout = async (req: Request, res: Response) => {
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204);
+  if (!cookies?.refreshToken) return res.sendStatus(204);
 
-  const refreshToken = cookies.jwt;
+  const refreshToken = cookies.refreshToken;
 
   try {
     await sql`UPDATE users SET refresh_token = NULL WHERE refresh_token = ${refreshToken}`;
-    res.clearCookie("jwt", { httpOnly: true, sameSite: "none", secure: true });
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/auth/refresh",
+    });
     res.sendStatus(204);
   } catch (err) {
     res.sendStatus(500);
