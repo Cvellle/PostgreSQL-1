@@ -34,11 +34,13 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const token = req.cookies["accessToken"];
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ message: "No access token" });
   }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
@@ -50,6 +52,7 @@ export function authenticateJWT(
     return res.status(401).json({ message: "Token expired" });
   }
 }
+
 //
 
 router.get("/me", authCors, authenticateJWT, getCurrentUser);
