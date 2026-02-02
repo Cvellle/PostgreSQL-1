@@ -29,22 +29,20 @@ export function authenticateJWT(
   res: Response,
   next: NextFunction,
 ) {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies["accessToken"];
 
-  if (!authHeader?.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({ message: "No access token" });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const secret = process.env.ACCESS_TOKEN_SECRET || "your-secret";
     const decoded = jwt.verify(token, secret) as any;
 
-    req.user = decoded.UserInfo ? decoded.UserInfo : decoded;
+    req.user = decoded.UserInfo ?? decoded;
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Token expired" });
+  } catch {
+    return res.status(401).json({ message: "Token expired or invalid" });
   }
 }
 //
