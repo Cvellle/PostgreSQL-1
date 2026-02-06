@@ -45,15 +45,23 @@ export const loginUser = async (req: Request, res: Response) => {
 
     await sql`UPDATE users SET refresh_token = ${refreshToken} WHERE id = ${user.id}`;
 
+    // ✅ FIX: Dynamic cookie settings
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      // 1. Must be false on localhost (HTTP) or the browser won't send it
+      secure: isProd,
+      // 2. "Lax" is better for SSR. "None" requires HTTPS and can be buggy locally
+      sameSite: isProd ? "none" : "lax",
+      // 3. Ensure path is root so it's visible to /[locale]/page.tsx
+      path: "/",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.json({ roles, accessToken });
   } catch (err) {
+    console.error(err);
     res.sendStatus(500);
   }
 };
